@@ -12,38 +12,78 @@ be aware: immutator uses `Proxy`. see [node support](http://node.green/#ES2015-b
 
 ### `let state = immutator(init={})`
 
-create a new immutator, initalizing with an object or an array `init`. 
+create a new immutator with initial value `init`.
 
 ```js
-let state = immutator({ numbers: [] })
+let state = immutator({ count: 0 })
+
+try {
+  state.count += 1
+} catch (err) {
+  console.log('Error: an immutator cannot be mutated')
+}
+
+console.log(state) // { count: 0 }
 ```
 
-`state` can *only* be mutated using a mutation event handler. direct mutations throw errors.
+`state` can only be mutated by dispatching mutation events. direct mutations throw errors. sub-objects are also immutators.
 
-### `state.mutator.on(event, callback(state, ...args))`
-
-**mutate** state on mutation events
-
-```js
-state.mutator.on('push', function (state, number) {
-  state.numbers.push(number)
-})
-```
-
-### `state.mutator.emit(event, ...args)`
+### `state.dispatch([mutation_event], data)`
 
 **dispatch** mutation events
 
 ```js
-state.mutator.emit('push', Math.random())
+state.dispatch({ type: 'INCREMENT', amount: 2 })
 ```
 
-### `state.on(property, callback)`
+or
+
+```js
+state.dispatch('INCREMENT', 2)
+```
+
+### `state.mutate([mutation_event], callback(state, data))`
+
+**mutate** state on mutation events. callback passes a mutable `state` object.
+
+```js
+state.mutate((state, action) => {
+  switch (action.type) {
+    case 'INCREMENT':
+      return state.count += action.amount || 1
+    case 'DECREMENT':
+      return state.count -= action.amount || 1
+  }
+})
+
+```
+
+or
+
+```js
+state.mutate('INCREMENT', (state, amount=1) => {
+  state.count += amount
+})
+
+state.mutate('DECREMENT', (state, amount=1) => {
+  state.count -= amount
+})
+```
+
+### `state.subscribe([property], callback)`
 
 **subscribe** to state mutations
 
 ```js
-state.on('*', function () {
+state.subscribe(function () {
   console.log('state mutated:', state)
+})
+```
+
+or to specific properties
+
+```js
+state.subscribe('count', function () {
+  console.log('state.count mutated:', state)
 })
 ```

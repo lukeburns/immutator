@@ -16,7 +16,25 @@ function mutator (mutable) {
   let immutable = new Proxy(mutable, {
     get: function (target, key) {
       let val = target[key]
-      if (key === 'mutator') return emitter
+      if (key === 'mutator') {
+        return emitter
+      } else if (key === 'mutate') {
+        return function (evt, callback) {
+          if (typeof evt == 'function') {
+            return emitter.on('*', evt)
+          } else {
+            return emitter.on(evt, callback)
+          }
+        }
+      } else if (key === 'dispatch') {
+        return function (evt, ...args) {
+          if (typeof evt !== 'string') 
+            return emit('*', mutable, evt, ...args)
+          else
+            return emit(evt, mutable, ...args)
+        }
+      }
+      
       return (val instanceof Object && typeof val !== 'function') ? mutator(val) : val
     },
     set: function () {
@@ -40,6 +58,14 @@ function observe (obj={}, before=x=>x) {
     get: (target, key) => {
       if (key !== 'emit' && emitter[key]) {
         return emitter[key].bind(emitter)
+      } else if (key === 'subscribe') {
+        return function (evt, callback) {
+          if (typeof evt == 'function') {
+            return emitter.on('*', evt)
+          } else {
+            return emitter.on(evt, callback)
+          }
+        }
       } else if (key === "__isProxy") {
         return true 
       } else {
@@ -56,7 +82,9 @@ function observe (obj={}, before=x=>x) {
           state.on('*', function (subProps) {
             let props = [prop].concat(subProps)
             emitter.emit('*', props)
-            emitter.emit(format(props))
+            props.forEach(function (prop, i) {
+              emitter.emit(format(props.slice(0, i+1)))
+            })
           })
         })
         target[prop] = state
