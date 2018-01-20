@@ -1,0 +1,8 @@
+{
+  "name": "immutator",
+  "version": "0.0.1",
+  "description": "a redux-inspired state mutator",
+  "main": "index.js",
+  "author": "Luke Burns",
+  "license": "MIT"
+}
