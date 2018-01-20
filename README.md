@@ -10,12 +10,14 @@ be aware: immutator uses `Proxy`. see [node support](http://node.green/#ES2015-b
 
 ## api
 
-### `let state = immutator(init={})`
+### `const state = immutator(init={})`
 
-create a new immutator with initial value `init`.
+create a new immutator with initial value `init`, an array or an object.
 
 ```js
-let state = immutator({ count: 0 })
+const immutator = require('immutator')
+
+const state = immutator({ count: 0 })
 
 try {
   state.count += 1
@@ -26,9 +28,9 @@ try {
 console.log(state) // { count: 0 }
 ```
 
-`state` can only be mutated by dispatching mutation events. direct mutations throw errors. sub-objects are also immutators.
+`state` is a proxy whose target can only be mutated by dispatching mutation events. sub-objects of `state` are also immutators.
 
-### `state.dispatch([mutation_event], data)`
+### `state.dispatch([mutation_event], ...data)`
 
 **dispatch** mutation events
 
@@ -36,15 +38,15 @@ console.log(state) // { count: 0 }
 state.dispatch({ type: 'INCREMENT', amount: 2 })
 ```
 
-or
+or use namespaced events
 
 ```js
 state.dispatch('INCREMENT', 2)
 ```
 
-### `state.mutate([mutation_event], callback(state, data))`
+### `state.mutate([mutation_event], callback(state, ...data))`
 
-**mutate** state on mutation events. callback passes a mutable `state` object.
+**mutate** state on mutation events. callback passes a mutable `state` object, a proxy that emits events on state get, set, and delete.
 
 ```js
 state.mutate((state, action) => {
@@ -58,7 +60,7 @@ state.mutate((state, action) => {
 
 ```
 
-or
+or use namespaced events
 
 ```js
 state.mutate('INCREMENT', (state, amount=1) => {
@@ -72,7 +74,7 @@ state.mutate('DECREMENT', (state, amount=1) => {
 
 ### `state.subscribe([property], callback)`
 
-**subscribe** to state mutations
+**subscribe** to all state mutations
 
 ```js
 state.subscribe(function () {

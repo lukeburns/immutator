@@ -1,6 +1,13 @@
-let immutator = require('./')
+const immutator = require('./')
 
-let state = immutator({ count: 0 })
+const state = immutator({ count: 0 })
+
+// mutating state outside of a mutation event handler throws an error
+try {
+  state.count += 1
+} catch (err) {
+  console.log('Error: an immutator cannot be mutated')
+}
 
 // subscribe to state mutations
 state.subscribe(() => {
@@ -20,10 +27,3 @@ state.mutate((state, action) => {
 // dispatch mutation events
 state.dispatch({ type: 'INCREMENT', amount: 2 })
 state.dispatch({ type: 'DECREMENT', amount: 1 })
-
-// mutating state outside of a mutation event handler throws an error
-try {
-  state.count += 1
-} catch (err) {
-  console.log('Error: an immutator cannot be mutated')
-}
