@@ -80,7 +80,7 @@ function observe (obj={}, before=x=>x) {
       if (prop === 'length') {
         target.length = value
         return true
-      } else if (value instanceof Object) {
+      } else if (value instanceof Object && typeof value !== 'function') {
         let state = observe(value, function (state) {
           state.on('*', function (subProps) {
             let props = [prop].concat(subProps)
