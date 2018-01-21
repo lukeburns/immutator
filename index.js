@@ -8,6 +8,7 @@ function system (obj) {
 
 function mutator (mutable) {
   let emitter = new EventEmitter()
+  emitter.setMaxListeners(1)
   let emit = emitter.emit.bind(emitter)
   emitter.emit = function (evt, ...args) {
     emit(evt, mutable, ...args)
@@ -61,12 +62,14 @@ function observe (obj={}, before=x=>x) {
       } else if (key === 'subscribe') {
         return function (evt, callback) {
           if (typeof evt == 'function') {
-            return emitter.on('*', evt)
+            emitter.on('*', evt)
+            return emitter.removeListener.bind(emitter, '*', evt)
           } else {
-            return emitter.on(evt, callback)
+            emitter.on(evt, callback)
+            return emitter.removeListener.bind(emitter, evt, callback)
           }
         }
-      } else if (key === "__isProxy") {
+      } else if (key === "__isObservable") {
         return true 
       } else {
         return target[key]
