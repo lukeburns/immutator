@@ -4,26 +4,24 @@ const state = immutator({ count: 0 })
 
 // mutating state outside of a mutation event handler throws an error
 try {
-  state.count += 1
+  state.count++
 } catch (err) {
   console.log('Error: an immutator cannot be mutated')
 }
 
 // subscribe to state mutations
-state.subscribe(() => {
-  console.log('state mutated:', state)
-})
+state.subscribe(() => console.log('state mutated:', state))
 
 // mutate state on mutation events
 state.mutate((state, action) => {
   switch (action.type) {
     case 'INCREMENT':
-      return state.count += action.amount || 1
+      return state.count++
     case 'DECREMENT':
-      return state.count -= action.amount || 1
+      return state.count--
   }
 })
 
 // dispatch mutation events
-state.dispatch({ type: 'INCREMENT', amount: 2 })
-state.dispatch({ type: 'DECREMENT', amount: 1 })
+state.dispatch({ type: 'INCREMENT' })
+state.dispatch({ type: 'DECREMENT' })

@@ -20,7 +20,7 @@ const immutator = require('immutator')
 const state = immutator({ count: 0 })
 
 try {
-  state.count += 1
+  state.count++
 } catch (err) {
   console.log('Error: an immutator cannot be mutated')
 }
@@ -35,13 +35,7 @@ console.log(state) // { count: 0 }
 **dispatch** mutation events
 
 ```js
-state.dispatch({ type: 'INCREMENT', amount: 2 })
-```
-
-or use namespaced events
-
-```js
-state.dispatch('INCREMENT', 2)
+state.dispatch('increment')
 ```
 
 ### `state.mutate([mutation_event], callback(state, ...data))`
@@ -49,27 +43,8 @@ state.dispatch('INCREMENT', 2)
 **mutate** state on mutation events. callback passes a mutable `state` object, a proxy that emits events on state get, set, and delete.
 
 ```js
-state.mutate((state, action) => {
-  switch (action.type) {
-    case 'INCREMENT':
-      return state.count += action.amount || 1
-    case 'DECREMENT':
-      return state.count -= action.amount || 1
-  }
-})
-
-```
-
-or use namespaced events
-
-```js
-state.mutate('INCREMENT', (state, amount=1) => {
-  state.count += amount
-})
-
-state.mutate('DECREMENT', (state, amount=1) => {
-  state.count -= amount
-})
+state.mutate('increment', state => state.count++)
+state.mutate('decrement', state => state.count--)
 ```
 
 ### `state.subscribe([property], callback)`
@@ -77,15 +52,11 @@ state.mutate('DECREMENT', (state, amount=1) => {
 **subscribe** to all state mutations
 
 ```js
-state.subscribe(function () {
-  console.log('state mutated:', state)
-})
+state.subscribe(() => console.log('state mutated:', state))
 ```
 
-or to specific properties
+or just to specific properties
 
 ```js
-state.subscribe('count', function () {
-  console.log('state.count mutated:', state)
-})
+state.subscribe('count', () => console.log('state mutated:', state))
 ```
