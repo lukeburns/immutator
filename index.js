@@ -7,40 +7,24 @@ function system (obj) {
 }
 
 function mutator (mutable) {
-  let emitter = new EventEmitter()
-  emitter.setMaxListeners(1)
-  let emit = emitter.emit.bind(emitter)
-  emitter.emit = function (evt, ...args) {
-    emit(evt, mutable, ...args)
-  }
-  
+  let mutaters = {}  
   let immutable = new Proxy(mutable, {
     get: function (target, key) {
-      let val = target[key]
-      if (key === 'mutator') {
-        return emitter
-      } else if (key === 'mutate') {
-        return function (evt, callback) {
-          if (typeof evt == 'function') {
-            return emitter.on('*', evt)
-          } else {
-            return emitter.on(evt, callback)
-          }
-        }
-      } else if (key === 'dispatch') {
-        return function (evt, ...args) {
-          if (typeof evt !== 'string') 
-            return emit('*', mutable, evt, ...args)
-          else
-            return emit(evt, mutable, ...args)
-        }
+      if (mutaters[key]) {
+        return mutaters[key]
       }
       
+      let val = target[key]
       return (val instanceof Object && typeof val !== 'function') ? mutator(val) : val
     },
-    set: function () {
-      throw new Error('Object cannot be mutated')
-      return false
+    set: function (target, key, fn) {
+      if (typeof fn !== 'function') {
+        throw new Error('Object cannot be mutated')
+        return false
+      } else {
+        mutaters[key] = (...data) => fn(mutable, ...data)
+        return true
+      }
     },
     delete: function () {
       throw new Error('Object cannot be mutated')
@@ -57,9 +41,7 @@ function observe (obj={}, before=x=>x) {
   
   let state = new Proxy(target, {
     get: (target, key) => {
-      if (key !== 'emit' && emitter[key]) {
-        return emitter[key].bind(emitter)
-      } else if (key === 'subscribe') {
+      if (key === 'subscribe') {
         return function (evt, callback) {
           if (typeof evt == 'function') {
             emitter.on('*', evt)
@@ -69,20 +51,15 @@ function observe (obj={}, before=x=>x) {
             return emitter.removeListener.bind(emitter, evt, callback)
           }
         }
-      } else if (key === "__isObservable") {
-        return true 
       } else {
         return target[key]
       } 
     },
     set: function (target, prop, value) {
       var oldValue = target[prop]
-      if (prop === 'length') {
-        target.length = value
-        return true
-      } else if (value instanceof Object && typeof value !== 'function') {
+      if (value instanceof Object && typeof value !== 'function' && prop !== 'length') {
         let state = observe(value, function (state) {
-          state.on('*', function (subProps) {
+          state.subscribe('*', function (subProps) {
             let props = [prop].concat(subProps)
             emitter.emit('*', props)
             props.forEach(function (prop, i) {

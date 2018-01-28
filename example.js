@@ -9,13 +9,14 @@ try {
   console.log('Error: an immutator cannot be mutated')
 }
 
+// define mutators
+state.increment = state => state.count++
+state.decrement = state => state.count--
+
 // subscribe to state mutations
-state.subscribe('count', () => console.log('state mutated:', state))
+state.subscribe('count', () => console.log(state))
 
-// mutate state on mutation events
-state.mutate('increment', state => state.count++)
-state.mutate('decrement', state => state.count--)
-
-// dispatch mutation events
-state.dispatch('increment')
-state.dispatch('decrement')
+// call mutations
+state.increment() // { count: 1 }
+state.increment() // { count: 2 }
+state.decrement() // { count: 1 }
