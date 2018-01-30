@@ -1,8 +1,9 @@
 const immutator = require('../')
 const bel = require('bel')
 const morph = require('nanomorph')
+const { observable, observe } = require('@nx-js/observer-util')
 
-const state = immutator({ count: 0, list: [] })
+const state = immutator(observable({ count: 0, list: [] }))
 
 // counter
 
@@ -32,18 +33,9 @@ function list (state) {
   </div>`
 }
 
-// render and subscribe
+// render
 
-render()
-state.subscribe(render)
-
-function body (state) {
-  return bel`<body>
-    ${counter(state)}
-    ${list(state)}
-  </body>`
-}
-
-function render () {
-  morph(document.body, body(state))
-}
+observe(() => morph(document.body, bel`<body>
+  ${counter(state)}
+  ${list(state)}
+</body>`))
