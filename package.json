@@ -1,8 +1,14 @@
 {
   "name": "immutator",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "a redux-inspired state mutator",
   "main": "index.js",
   "author": "Luke Burns",
   "license": "MIT",
+  "dependencies": {
+    "@nx-js/observer-util": "^4.1.0",
+    "bel": "^5.1.6",
+    "morphable": "^0.2.1",
+    "nanomorph": "^5.1.3"
+  }
 }

@@ -1,11 +1,10 @@
 module.exports = immutator
 
 function immutator (mutable) {
-  let mutaters = {}  
   let immutable = new Proxy(mutable, {
     get: function (target, key) {
-      if (mutaters[key]) {
-        return mutaters[key]
+      if (key === '__raw') {
+        return target
       }
       
       return (target[key] instanceof Object && typeof target[key] !== 'function') ? immutator(target[key]) : target[key]
@@ -15,7 +14,7 @@ function immutator (mutable) {
         throw new Error('Object cannot be mutated')
         return false
       } else {
-        return mutaters[key] = (...data) => fn(mutable, ...data)
+        return target[key] = (...data) => fn(target, ...data)
       }
     },
     delete: function () {

@@ -1,41 +1,42 @@
 const immutator = require('../')
-const bel = require('bel')
-const morph = require('nanomorph')
-const { observable, observe } = require('@nx-js/observer-util')
+const html = require('bel')
+const _ = require('morphable')
+const raw = _.raw; _.raw = state => raw(state.__raw)
+_.log = true
 
-const state = immutator(observable({ count: 0, list: [] }))
+const state = immutator(_({ view: 'list', count: 0, list: [] }))
 
-// counter
+// count
 
 state.increment = state => state.count++
 state.decrement = state => state.count--
-
-function counter (state) {
-  return bel`<div id="counter">
-    <h1>Counter</h1>
-    <div id="count">${state.count}</div>
-    <button onclick=${state.increment}>+</button>
-    <button onclick=${state.decrement}>-</button>
-  </div>`
-}
+  
+const count = _(state => html`<div>
+  <h1>Count | <a href="#" onclick=${() => state.load('list')}>List</a></h1>
+  <div id="count">${state.count}</div>
+  <button onclick=${state.increment}>+</button>
+  <button onclick=${state.decrement}>-</button>
+</div>`)
 
 // list
 
 state.append = state => state.list.push(Math.random())
 
-function list (state) {
-  return bel`<div id="list">
-    <h1>Random Numbers</h1>
-    <button onclick=${state.append}>Add Random Number</button>
-    <ul>
-      ${state.list.map(item => bel`<li>${item}</li>`)}
-    </ul>
-  </div>`
-}
+const list = _(state => html`<div>
+  <h1><a href="#" onclick=${() => state.load('count')}>Count</a> | List</h1>
+  <button onclick=${state.append}>Add Random Number</button>
+  <ul>
+    ${state.list.map(item => html`<li>${item}</li>`)}
+  </ul>
+</div>`)
 
-// render
+// body
 
-observe(() => morph(document.body, bel`<body>
-  ${counter(state)}
-  ${list(state)}
-</body>`))
+const views = { count, list }
+state.load = (state, view) => state.view = view
+
+const body = _(state => html`<body id=${state.view}>
+  ${views[state.view](state)}
+</body>`)
+
+body(state, document.body)
